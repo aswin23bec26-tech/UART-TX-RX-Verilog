@@ -1,89 +1,153 @@
-# UART TX/RX (Verilog) – FPGA Ready
+# UART Transmitter & Receiver (Verilog HDL)
 
-##  Project Overview
-This project implements a complete **UART Transmitter and Receiver** in **Verilog HDL**, designed and verified through simulation and FPGA synthesis using **Xilinx Vivado 2022.2**.
-
-The design supports:
-- 8-bit data
-- No parity
-- 1 stop bit (8N1)
-- Parameterized baud rate generation
-
-A loopback testbench is used to validate correct TX → RX functionality.
+FPGA-ready implementation of a **UART (Universal Asynchronous Receiver Transmitter)** using **Verilog HDL**, featuring baud-rate generation, FSM-based TX/RX, and error detection.  
+Designed, simulated, and synthesized using **Xilinx Vivado 2022.2**.
 
 ---
 
-##  Modules Implemented
+## Project Overview
 
-### 1. Baud Rate Generator (`baud_gen.v`)
+This project implements a complete UART communication system suitable for FPGA deployment.  
+It demonstrates reliable asynchronous serial communication using finite state machines, precise baud-rate timing, and robust receive-side validation.
+
+A loopback testbench is used to verify correct end-to-end data transmission from TX to RX.
+
+---
+
+## UART Configuration
+
+| Parameter      | Value                         |
+|----------------|-------------------------------|
+| Data bits      | 8                             |
+| Parity         | Even                          |
+| Stop bits      | 1                             |
+| Frame format   | 8E1                           |
+| Baud rate      | Parameterized (default: 9600) |
+| System clock   | 100 MHz                       |
+
+---
+
+## Design Architecture
+
+The UART system consists of the following RTL modules:
+
+### Baud Rate Generator (`baud_gen.v`)
 - Generates `baud_tick` and `half_baud_tick`
 - Parameterized for clock frequency and baud rate
-- Uses counters and clock enable logic
+- Provides a shared timing reference for TX and RX
 
-### 2. UART Transmitter (`uart_tx.v`)
-- Handles start bit, data bits, and stop bit
-- FSM-based implementation
-- Shifts data LSB first
+### UART Transmitter (`uart_tx.v`)
+- FSM-based serial transmitter
+- Appends start bit, data bits (LSB first), even parity bit, and stop bit
+- Outputs `tx`, `tx_busy`, and `tx_done`
 
-### 3. UART Receiver (`uart_rx.v`)
-- Samples data at half-baud
-- Reconstructs received byte
-- Detects framing and parity errors
+**FSM Flow:**  
+`IDLE → START → DATA → PARITY → STOP → IDLE`
 
-### 4. Top Module (`uart_top.v`)
-- Integrates TX, RX, and baud generator
-- Designed for FPGA synthesis
+![UART TX Frame Structure](tx_frame_structure.png)
+
+
+### UART Receiver (`uart_rx.v`)
+- Uses mid-bit sampling for reliable data recovery
+- FSM-based receiver design
+- Detects framing errors by validating stop bit
+- Outputs `rx_data`, `rx_done`, and `framing_error`
+
+**FSM Flow:**  
+`IDLE → START → ALIGN → DATA → STOP → IDLE`
+
+![RX Mid Bit Sampling](rx_mid_bit_sampling.png)
+
+![RX Done and Data](rx_done_and_data.png)
+
+
+### Top Module (`uart_top.v`)
+- Integrates baud generator, transmitter, and receiver
+- Designed for FPGA synthesis and testing
 
 ---
 
-##  Simulation
-- Loopback testbench verifies TX output is correctly received by RX
-- Simulated using Vivado simulator
-- Waveforms captured for verification
+## Simulation and Verification
+
+- Loopback testbench connects TX output directly to RX input
+- Verified correct serialization and deserialization
+- Confirmed correct baud-aligned mid-bit sampling
+- Simulated using **Vivado Simulator**
+
+- ![UART Loopback Simulation](sim_uart_loopback_full.png)
+
 
 ---
 
-##  FPGA Synthesis
-- Target Device: **xc7a12ticsg325-1L**
-- Tool: **Xilinx Vivado 2022.2**
+## Error Detection
+
+- **Even parity** generation and checking
+- **Framing error detection** by validating stop bit integrity
+
+![No Errors Observed](no_errors.png)
+
+---
+
+## FPGA Synthesis Results
+
+![Synthesized Design View](Synthesized_Design_View.png)
+
+
+- **Target Device:** xc7a12ticsg325-1L (Artix-7)
+- **Tool:** Xilinx Vivado 2022.2
 - Successfully synthesized with low resource utilization
 
-### Resource Utilization Summary
-- Slice LUTs: 28
-- Slice Registers: 34
-- BUFG: 1
-- DSPs: 0
-- BRAM: 0
+### Resource Utilization (Post-Synthesis)
 
-Full utilization report is included in the `docs/` folder.
+| Resource        | Used |
+|-----------------|------|
+| Slice LUTs      | 28   |
+| Slice Registers | 34   |
+| BUFG            | 1    |
+| DSP             | 0    |
+| BRAM            | 0    |
+
+Detailed reports and screenshots are included in the repository.
+
+![Clock Utilization](Clock_Utilization.png)
 
 ---
 
-## 📂 Project Structure
-UART_final/
+## Project Structure
+
+```text
+UART_P&F/
 ├── rtl/
-│ ├── baud_gen.v
-│ ├── uart_tx.v
-│ ├── uart_rx.v
-│ └── uart_top.v
+│   ├── baud_gen.v
+│   ├── uart_tx.v
+│   ├── uart_rx.v
+│   └── uart_top.v
 ├── tb/
-│ └── uart_loopback_tb.v
+│   └── uart_loopback_tb.v
 ├── docs/
-│ ├── baud_gen_utilization_synth.pdf
-│ ├── clock_utilization.png
-│ └── synthesized_netlist.png
+│   ├── baud_gen_utilization_synth.pdf
+│   ├── synthesized_netlist.png
+│   └── clock_utilization.png
+├── tx_frame_structure.png
+├── rx_mid_bit_sampling.png
+├── rx_done_and_data.png
 └── README.md
+```
 
 ---
 
 ## Tools Used
+
 - Verilog HDL
+- Finite State Machines (FSM)
+- UART Protocol
 - Xilinx Vivado 2022.2
-- Windows 10
+- FPGA synthesis and timing analysis
 
 ---
 
-## 👤 Author
+## Author
+
 **Aswin S**  
 Electronics and Communication Engineering  
-FPGA / Digital Design Enthusiast
+FPGA & RTL Design Enthusiast
