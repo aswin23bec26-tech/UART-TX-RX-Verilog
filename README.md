@@ -70,11 +70,11 @@ The UART system consists of the following RTL modules:
 ## Simulation and Verification
 
 - Loopback testbench connects TX output directly to RX input
-- Verified correct serialization and deserialization
+- Verified correct bit-level serialization and reconstruction across baud boundaries
 - Confirmed correct baud-aligned mid-bit sampling
 - Simulated using **Vivado Simulator**
 
-- ![UART Loopback Simulation](sim_uart_loopback_full.png)
+![UART Loopback Simulation](sim_uart_loopback_full.png)
 
 
 ---
@@ -83,6 +83,8 @@ The UART system consists of the following RTL modules:
 
 - **Even parity** generation and checking
 - **Framing error detection** by validating stop bit integrity
+- Error flags are asserted synchronously with `rx_done` to simplify system-level integration.
+
 
 ![No Errors Observed](no_errors.png)
 
@@ -150,4 +152,5 @@ UART_P&F/
 
 **Aswin S**  
 Electronics and Communication Engineering  
-FPGA & RTL Design Enthusiast
+FPGA & RTL Design | Embedded & Digital Systems
+
